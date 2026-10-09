@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Aija's Quest">
+<meta name="theme-color" content="#ffb6d9">
+<title>Aija's Quest 2.6</title>
+<style>
+:root{
+ --pink:#ffb6d9; --pink2:#ffe5f2; --blue:#bde8ff; --blue2:#e8f7ff;
+ --yellow:#ffe680; --yellow2:#fff6c4; --green:#bdf1cf; --purple:#eadcff;
+ --ink:#2f2f38; --muted:#757184; --shadow:0 10px 28px rgba(70,45,85,.12);
+}
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+ color:var(--ink);background:linear-gradient(180deg,#fff7fb,#eef9ff 48%,#fff9dc);
+ min-height:100vh;padding-bottom:96px
+}
+button{font:inherit}
+.app{max-width:460px;margin:auto}
+.hero{
+ padding:22px 18px 18px;background:linear-gradient(135deg,var(--pink),var(--blue),var(--yellow));
+ border-bottom-left-radius:30px;border-bottom-right-radius:30px;box-shadow:var(--shadow)
+}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{font-size:28px;font-weight:950;letter-spacing:-.5px;margin:0}
+.pill{background:rgba(255,255,255,.82);border-radius:999px;padding:8px 12px;font-weight:900;font-size:14px}
+.mini-card{margin-top:16px;background:rgba(255,255,255,.78);border-radius:24px;padding:14px;display:flex;align-items:center;gap:12px}
+.dog{width:72px;height:72px;border-radius:24px;background:#1e1e24;position:relative;flex:0 0 72px;box-shadow:inset 0 -8px 0 rgba(255,255,255,.08)}
+.dog:before,.dog:after{content:"";position:absolute;width:26px;height:36px;background:#15151a;top:8px;border-radius:18px}
+.dog:before{left:-6px;transform:rotate(-16deg)}.dog:after{right:-6px;transform:rotate(16deg)}
+.eye{position:absolute;width:9px;height:9px;background:#fff;border-radius:50%;top:26px}.eye.l{left:22px}.eye.r{right:22px}
+.nose{position:absolute;width:13px;height:9px;background:#ffb6d9;border-radius:50%;left:29px;top:42px}.bow{position:absolute;right:6px;top:5px;font-size:18px}
+.mini-text h2{margin:0 0 4px;font-size:19px}.mini-text p{margin:0;color:#494557;font-size:15px;line-height:1.3}
+.card{background:rgba(255,255,255,.95);border-radius:24px;margin:14px 14px 0;padding:16px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 12px;font-size:20px}
+.xp-row{display:flex;justify-content:space-between;font-weight:900;margin-bottom:8px}
+.bar{height:22px;background:#ececf2;border-radius:999px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#ff8dc7,#7bdcff,#ffe15d);border-radius:999px;transition:width .35s}
+.small{font-size:13px;color:var(--muted);font-weight:700;line-height:1.3}.note{font-size:13px;line-height:1.45;color:#686475}
+.energy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.energy{border:0;border-radius:18px;padding:12px 6px;font-weight:900;background:#f4f2f8;color:#4f4a59}.energy.active{outline:3px solid #fff;box-shadow:0 0 0 4px #ffb6d9}
+.energy.low{background:#eef8ff}.energy.mid{background:#fff6c4}.energy.high{background:#ffe5f2}
+.quest-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quest{border:0;min-height:148px;border-radius:22px;padding:12px 9px;color:var(--ink);font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.05);text-align:left}
+.quest.pink{background:var(--pink2)}.quest.blue{background:var(--blue2)}.quest.yellow{background:var(--yellow2)}.quest.purple{background:var(--purple)}.quest.green{background:#eaffef}
+.quest.done{background:var(--green)!important;opacity:.8}.quest.full{grid-column:1/3}
+.icon{display:block;font-size:30px;margin-bottom:5px}
+.week-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.week-quest{border:0;border-radius:20px;padding:13px;text-align:left;font-weight:900;background:#f7f6fa}
+.week-quest.done{background:var(--green)}
+.week-progress{height:9px;background:#e9e7ed;border-radius:999px;margin-top:8px;overflow:hidden}.week-progress div{height:100%;background:#ff9fd0;border-radius:999px}
+
+.board-empty{
+  border:2px dashed #ddd7e5;
+  border-radius:20px;
+  padding:18px 14px;
+  text-align:center;
+  color:var(--muted);
+  background:#fbfafc;
+  font-weight:800;
+}
+.board-list{display:grid;gap:10px}
+.board-item{
+  border-radius:20px;
+  padding:13px;
+  background:#f8f6fb;
+  border:2px solid transparent;
+}
+.board-item.done{background:var(--green)}
+.board-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.board-title{font-weight:950;font-size:17px}
+.board-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mini-btn{
+  border:0;border-radius:14px;padding:10px 12px;
+  background:#2f2f38;color:#fff;font-weight:900;min-height:42px
+}
+.mini-btn.light{background:#ece8f1;color:#4f4959}.mini-btn:disabled{opacity:.55}
+.library-section-title{
+  margin:16px 0 8px;font-size:14px;font-weight:950;color:#615b6a;
+  text-transform:uppercase;letter-spacing:.04em
+}
+.library-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.library-card{
+  border:2px solid transparent;border-radius:20px;padding:12px 10px;
+  text-align:left;background:#f7f6fa;color:var(--ink);font-weight:900;
+  min-height:118px;position:relative
+}
+.library-card.training:nth-child(4n+1){background:var(--pink2)}
+.library-card.training:nth-child(4n+2){background:var(--blue2)}
+.library-card.training:nth-child(4n+3){background:var(--yellow2)}
+.library-card.training:nth-child(4n+4){background:var(--purple)}
+.library-card.selected{border-color:#ff9fd0;box-shadow:0 0 0 2px #ffe0ef inset}
+.library-card.done{background:var(--green);opacity:.78}
+.select-tag{
+  display:inline-block;margin-top:8px;padding:5px 8px;border-radius:999px;
+  background:rgba(255,255,255,.72);font-size:12px;font-weight:950
+}
+.life-meta{display:block;margin-top:5px;font-size:12px;color:var(--muted);font-weight:800}
+
+.reward{background:linear-gradient(135deg,#fff,#fff0f8);border:2px dashed #ff9fd0;text-align:center}.big{font-size:34px;margin:4px 0}
+.levels{display:flex;gap:7px;overflow-x:auto;padding-bottom:5px}.level{min-width:88px;background:var(--blue2);border:2px solid #fff;border-radius:18px;padding:10px 8px;text-align:center;font-weight:900;color:#484459}
+.level.active{background:var(--yellow2);outline:3px solid var(--yellow)}
+.badges{display:grid;grid-template-columns:1fr 1fr;gap:9px}.badge{background:#f7f7fb;border-radius:18px;padding:10px;font-weight:900;text-align:center;opacity:.38}.badge.unlocked{opacity:1;background:#fff5bf;outline:2px solid #ffe680}
+.btn{width:100%;border:0;background:#2f2f38;color:#fff;border-radius:18px;padding:14px 18px;font-weight:900;font-size:16px;margin-top:10px}.btn.secondary{background:#f0edf4;color:#4d4856}
+.section{display:none}.section.active{display:block}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);border-top:1px solid #eee;padding:10px 8px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(12px)}
+.nav-inner{max-width:460px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.nav button{border:0;background:#f5f2fa;border-radius:16px;padding:9px 4px;font-weight:900;color:#5a5368}
+.modal{position:fixed;inset:0;background:rgba(35,30,45,.42);display:none;align-items:flex-end;justify-content:center;z-index:20;padding:0 10px 12px}.modal.show{display:flex}
+.sheet{background:#fff;border-radius:28px 28px 22px 22px;max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:18px;box-shadow:var(--shadow)}.sheet h2{margin:0 0 8px}
+.exercise{background:#f7f6fa;border-radius:18px;padding:12px;margin:9px 0}.exercise strong{display:block;margin-bottom:3px}
+.timer{margin:14px 0;text-align:center;font-size:42px;font-weight:950;background:#f8f4fa;border-radius:22px;padding:16px}.timer-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.message{text-align:center;font-weight:900;color:#d64292;min-height:28px}
+.confetti{pointer-events:none;position:fixed;inset:0;display:none;align-items:center;justify-content:center;font-size:58px;z-index:40;animation:pop .9s ease}
+@keyframes pop{0%{transform:scale(.5);opacity:0}30%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:0}}
+
+.library-card{
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.library-card:active{transform:scale(.985)}
+.library-card.selected::after{
+  content:"På boardet ✓";
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:#fff;
+  border-radius:999px;
+  padding:4px 7px;
+  font-size:11px;
+  font-weight:950;
+  color:#5b5262;
+  box-shadow:0 2px 8px rgba(70,45,85,.10);
+}
+@media (max-width:360px){
+  .library-grid{grid-template-columns:1fr}
+}
+
+
+.pick-card{
+  border:2px solid #e7e1ea;
+  border-radius:20px;
+  padding:12px;
+  background:#fff;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  min-height:96px;
+  cursor:pointer;
+  position:relative;
+}
+.pick-card.selected{
+  border-color:#ff8fc7;
+  background:#fff6fb;
+  box-shadow:0 0 0 2px #ffe2f0 inset;
+}
+.pick-box{
+  flex:0 0 28px;
+  width:28px;height:28px;
+  border:2px solid #aaa2b1;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:950;
+  background:#fff;
+  margin-top:2px;
+}
+.pick-card.selected .pick-box{
+  border-color:#d94c9a;
+  background:#ffd9ec;
+}
+.pick-main{min-width:0;flex:1}
+.pick-title{font-weight:950;font-size:16px;margin-bottom:3px}
+.pick-card .small{display:block}
+.weekly-visual{display:grid;gap:10px}
+.weekly-row{
+  display:grid;
+  grid-template-columns:minmax(110px,1.2fr) minmax(100px,2fr) auto;
+  gap:10px;
+  align-items:center;
+}
+.weekly-label{font-weight:900;font-size:14px;min-width:0}
+.weekly-track{
+  height:14px;background:#efedf2;border-radius:999px;overflow:hidden;
+}
+.weekly-fill{
+  height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#ff9fd0,#8edcff);
+}
+.weekly-count{
+  min-width:36px;text-align:right;font-weight:950;font-size:13px;
+}
+.weekly-zero{
+  opacity:.72;
+}
+.weekly-zero .weekly-track{
+  outline:2px dashed #d8d1de;
+  outline-offset:2px;
+}
+.weekly-hint{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  background:#fff8d7;
+  font-size:13px;
+  font-weight:800;
+  color:#625b42;
+}
+.board-done-btn{
+  border:0;border-radius:14px;padding:11px 13px;
+  background:#2f2f38;color:#fff;font-weight:950;min-height:44px
+}
+.board-done-btn.done{background:#79c997;color:#23412f}
+@media (max-width:370px){
+  .weekly-row{grid-template-columns:1fr;gap:5px}
+  .weekly-count{text-align:left}
+}
+
+
+.pick-card{
+  width:100%;
+  border:3px solid #e5dfe9;
+  border-radius:22px;
+  padding:14px;
+  background:#fff;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  text-align:left;
+  min-height:118px;
+  cursor:pointer;
+  position:relative;
+  box-shadow:0 5px 12px rgba(70,45,85,.08);
+}
+.pick-card + .pick-card{margin-top:10px}
+.pick-card.selected{
+  border-color:#e76aad;
+  background:#fff0f8;
+  box-shadow:0 0 0 3px #ffd8eb inset,0 5px 12px rgba(70,45,85,.08);
+}
+.pick-card.done{
+  background:#eaffef;
+  border-color:#9fd9b4;
+}
+.pick-box{
+  flex:0 0 34px;
+  width:34px;height:34px;
+  border:3px solid #9c94a4;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:950;
+  background:#fff;
+  margin-top:1px;
+}
+.pick-card.selected .pick-box{
+  background:#ffb6d9;
+  border-color:#d64c97;
+  color:#4e2440;
+}
+.pick-main{display:block;min-width:0;flex:1}
+.pick-title{display:block;font-weight:950;font-size:18px;line-height:1.2;margin-bottom:7px}
+.pick-preview{
+  display:block;
+  font-size:14px;
+  line-height:1.4;
+  color:#5f5967;
+  font-weight:750;
+}
+.pick-action{
+  display:inline-block;
+  margin-top:10px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#f1edf4;
+  font-size:12px;
+  font-weight:950;
+  color:#4f4857;
+}
+.pick-card.selected .pick-action{background:#ffd9eb}
+.pick-card.life{background:#fffaf0}
+.library-section-title{
+  font-size:15px;
+  margin:18px 0 10px;
+}
+#trainingLibrary,#lifeLibrary{display:block}
+
+
+.quest-choice-list{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+.pick-card{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:15px;
+  border:3px solid #ded8e3;
+  border-radius:22px;
+  background:#fff;
+  color:var(--ink);
+  text-align:left;
+  box-shadow:0 5px 14px rgba(70,45,85,.08);
+  min-height:112px;
+}
+.pick-card.selected{
+  border-color:#e454a3;
+  background:#fff0f8;
+}
+.pick-card.done{
+  border-color:#8ccfa6;
+  background:#edfff3;
+}
+.pick-box{
+  width:36px;
+  height:36px;
+  flex:0 0 36px;
+  border:3px solid #9e95a5;
+  border-radius:10px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+  font-weight:950;
+}
+.pick-card.selected .pick-box{
+  background:#ffb6d9;
+  border-color:#d74795;
+}
+.pick-main{display:block;min-width:0;flex:1}
+.pick-title{
+  display:block;
+  font-size:18px;
+  font-weight:950;
+  margin-bottom:6px;
+}
+.pick-preview{
+  display:block;
+  font-size:14px;
+  line-height:1.4;
+  color:#5f5967;
+  font-weight:700;
+}
+.pick-action{
+  display:inline-block;
+  margin-top:9px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:#f0edf3;
+  font-size:12px;
+  font-weight:950;
+}
+.pick-card.selected .pick-action{background:#ffd9eb}
+.pick-card.life{background:#fffaf0}
+
+</style>
+</head>
+<body>
+<div class="app">
+<section id="home" class="section active">
+ <div class="hero">
+  <div class="topline"><h1 class="logo">🌸 Aija's Quest</h1><div class="pill" id="levelPill">Spark ✨</div></div>
+  <div class="mini-card">
+   <div class="dog"><span class="bow">🎀</span><span class="eye l"></span><span class="eye r"></span><span class="nose"></span></div>
+   <div class="mini-text"><h2>Hej Aija!</h2><p id="miniMessage">Mini hepper. Start med det niveau der føles nemt nok i dag.</p></div>
+  </div>
+ </div>
+
+ 
+ <div class="card">
+  <h2>🌤️ Vælg niveau for i dag</h2>
+  <div class="energy-grid">
+   <button class="energy low" data-energy="low">🌱<br>Lav</button>
+   <button class="energy mid active" data-energy="mid">✨<br>Normal</button>
+   <button class="energy high" data-energy="high">⚡<br>Høj</button>
+  </div>
+  <p class="small" style="margin:10px 0 0">Niveauet ændrer kun antal gentagelser og tid i de quests, du vælger.</p>
+ </div>
+  <p class="small">XP kan kun gå op. Ingen straf for pauser.</p>
+ </div>
+
+ 
+ 
+ <div class="card">
+  <h2>📌 Mit board i dag</h2>
+  <p class="small">Vælg de quests, du er motiveret for nedenfor. Når du vælger en, kommer den op her.</p>
+  <div id="board"></div>
+  <p class="message" id="message"></p>
+ </div>
+
+ <div class="card">
+  <h2>☑️ Vælg dine quests</h2>
+  <p class="small">Tryk på hele kortet. Et tydeligt ✓ betyder, at questen ligger på dit board.</p>
+
+  <div class="library-section-title">Træning</div>
+  <div id="trainingLibrary" class="quest-choice-list"></div>
+
+  <div class="library-section-title">Andre quests</div>
+  <div id="lifeLibrary" class="quest-choice-list"></div>
+ </div>
+
+ <div class="card">
+  <h2>📊 Ugens overblik</h2>
+  <p class="small">Se hvilke quests du har valgt mest – og hvilke du endnu ikke har prøvet i denne uge.</p>
+  <div class="weekly-visual" id="weeklyVisual"></div>
+  <div class="weekly-hint" id="weeklyHint"></div>
+ </div>
+
+<div class="card reward">
+  <h2>🎁 Næste unlock</h2>
+  <div class="big" id="rewardIcon">🔒</div>
+  <p><strong id="rewardTitle">Glow</strong></p>
+  <p class="small" id="rewardText">Fortsæt i dit eget tempo.</p>
+ </div>
+</section>
+
+<section id="levels" class="section">
+ <div class="hero"><h1 class="logo">🏆 Levels</h1><p><strong>Du bygger styrke lidt ad gangen.</strong></p></div>
+ <div class="card"><div class="levels" id="levelsRow"></div></div>
+ <div class="card">
+  <h2>Progression uden pres</h2>
+  <p class="note">De første træninger er med vilje korte. Efter hver 4. gennemførte træningsquest øges niveauet kun lidt – fx 2 gentagelser mere eller 5 sekunder ekstra planke.</p>
+ </div>
+</section>
+
+<section id="badges" class="section">
+ <div class="hero"><h1 class="logo">🏅 Badges</h1><p><strong>Små sejre tæller.</strong></p></div>
+ <div class="card"><div class="badges" id="badgesGrid"></div></div>
+</section>
+
+<section id="guide" class="section">
+ <div class="hero"><h1 class="logo">📱 Guide</h1><p><strong>Enkel, privat og uden login.</strong></p></div>
+ <div class="card">
+  <h2>Sådan virker den</h2>
+  <p class="note">Vælg niveau for dagen, læg de quests du har lyst til på dit board, og tag dem i den rækkefølge du vil. Der er ingen streaks, ingen straf og ingen daglige krav.</p>
+ </div>
+ <div class="card">
+  <h2>Gemmer lokalt</h2>
+  <p class="note">XP og fremskridt gemmes på denne enhed/browser. Hvis browserdata slettes, kan fremskridt forsvinde.</p>
+  <button class="btn secondary" onclick="resetAll()">Nulstil alle data</button>
+ </div>
+</section>
+</div>
+
+<div class="modal" id="modal">
+ <div class="sheet">
+  <h2 id="modalTitle">Quest</h2>
+  <p class="small" id="modalIntro"></p>
+  <div id="exerciseList"></div>
+  <div class="timer" id="timer">00:00</div>
+  <div class="timer-controls">
+   <button class="btn secondary" onclick="startTimer(60)">1 min</button>
+   <button class="btn secondary" onclick="startTimer(30)">30 sek</button>
+  </div>
+  <button class="btn" id="completeBtn">Færdig ⭐</button>
+  <button class="btn secondary" onclick="closeModal()">Luk</button>
+ </div>
+</div>
+
+<div class="confetti" id="confetti">🎉⭐🌸</div>
+
+<div class="nav"><div class="nav-inner">
+ <button onclick="show('home')">🌸<br>Home</button>
+ <button onclick="show('levels')">🏆<br>Levels</button>
+ <button onclick="show('badges')">🏅<br>Badges</button>
+ <button onclick="show('guide')">📱<br>Guide</button>
+</div></div>
+
+<script>
+const levels=[
+ {name:"Spark",icon:"✨",xp:0},
+ {name:"Glow",icon:"🌟",xp:100},
+ {name:"Bloom",icon:"🌸",xp:250},
+ {name:"Warrior",icon:"💫",xp:450},
+ {name:"Champion",icon:"🏆",xp:700},
+ {name:"Legend",icon:"💎",xp:1000}
+];
+
+const baseQuests={
+ strength:{
+  title:"Strength Quest",icon:"💪",cls:"pink",xp:15,
+  sets:{
+   low:[["Squats","5 gentagelser"],["Glute bridge","6 gentagelser"],["Let vægt – biceps","5 pr. arm"]],
+   mid:[["Squats","8 gentagelser"],["Glute bridge","10 gentagelser"],["Let vægt – biceps","8 pr. arm"],["Skulderpres med lette vægte","6 gentagelser"]],
+   high:[["Squats","10 gentagelser"],["Glute bridge","12 gentagelser"],["Biceps","10 pr. arm"],["Skulderpres","8 gentagelser"]]
+  }},
+ jump:{
+  title:"Jump Quest",icon:"🪢",cls:"blue",xp:12,
+  sets:{
+   low:[["Sjip","15 sek."],["Pause","45 sek."],["Gentag","3 runder"]],
+   mid:[["Sjip","25 sek."],["Pause","35 sek."],["Gentag","4 runder"]],
+   high:[["Sjip","30 sek."],["Pause","30 sek."],["Gentag","5 runder"]]
+  }},
+ core:{
+  title:"Core Quest",icon:"🔥",cls:"yellow",xp:12,
+  sets:{
+   low:[["Planke","8 sek."],["Dead bug","4 pr. side"],["Bird dog","4 pr. side"]],
+   mid:[["Planke","15 sek."],["Dead bug","6 pr. side"],["Bird dog","6 pr. side"],["Crunches","8 rolige"]],
+   high:[["Planke","20 sek."],["Dead bug","8 pr. side"],["Bird dog","8 pr. side"],["Crunches","10 rolige"]]
+  }},
+ power:{
+  title:"Power Quest",icon:"⚡",cls:"purple",xp:18,
+  sets:{
+   low:[["Squats","4"],["Sjip","15 sek."],["Planke","8 sek."],["Gentag","2 runder"]],
+   mid:[["Squats","7"],["Sjip","25 sek."],["Planke","15 sek."],["Gentag","2 runder"]],
+   high:[["Squats","8"],["Sjip","30 sek."],["Planke","20 sek."],["Gentag","3 runder"]]
+  }},
+ easy:{
+  title:"Easy Quest",icon:"🌱",cls:"green full",xp:8,
+  sets:{
+   low:[["March på stedet","1 min."],["5 rolige squats","1 runde"],["Stræk arme og ryg","1 min."]],
+   mid:[["March på stedet","1 min."],["Squats","6"],["Glute bridge","8"],["Roligt stræk","1 min."]],
+   high:[["March på stedet","1 min."],["Squats","8"],["Glute bridge","10"],["Planke","10 sek."]]
+  }}
+};
+
+const lifeQuests=[
+ {id:"tidy",title:"Room Reset",icon:"🧹",target:1,xp:15,text:"10–15 min. oprydning"},
+ {id:"clothes",title:"Tøj på plads",icon:"🧺",target:1,xp:12,text:"Tøj på plads én gang i denne uge"},
+ {id:"creative",title:"Creative Quest",icon:"🎨",target:2,xp:10,text:"Tegn, mal, byg, sy, lav noget kreativt"}
+];
+
+let state;
+try{state=JSON.parse(localStorage.getItem("aijasQuest26")||localStorage.getItem("aijasQuest25")||localStorage.getItem("aijasQuest24")||localStorage.getItem("aijasQuest22")||localStorage.getItem("aijasQuest2")||"null")}catch(e){}
+if(!state) state={xp:0,energy:"mid",trainingCount:0,badges:{},weekKey:"",week:{tidy:0,clothes:0,creative:0},doneToday:{},board:[],weekSelected:{},weekSelectedDays:{}};
+
+function mondayKey(){
+ const d=new Date(), day=(d.getDay()+6)%7;
+ const m=new Date(d); m.setHours(0,0,0,0); m.setDate(d.getDate()-day);
+ return m.toISOString().slice(0,10);
+}
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function normalize(){
+ if(state.weekKey!==mondayKey()){state.weekKey=mondayKey();state.week={tidy:0,clothes:0,creative:0};state.weekSelected={};state.weekSelectedDays={}}
+ if(!state.doneToday || state.doneToday.date!==todayKey()){ state.doneToday={date:todayKey(),items:{}}; state.board=[]; }
+ if(!state.badges)state.badges={};
+ if(!state.week)state.week={tidy:0,clothes:0,creative:0};
+ if(!Array.isArray(state.board))state.board=[];
+ if(!state.weekSelected)state.weekSelected={};
+ if(!state.weekSelectedDays)state.weekSelectedDays={};
+}
+function save(){localStorage.setItem("aijasQuest26",JSON.stringify(state))}
+function currentLevel(){
+ let cur=levels[0]; for(const l of levels) if(state.xp>=l.xp) cur=l; return cur
+}
+function nextLevel(){for(const l of levels)if(state.xp<l.xp)return l;return levels[levels.length-1]}
+function progressionBonus(){
+ return Math.floor((state.trainingCount||0)/4);
+}
+function adjusted(text){
+ const p=progressionBonus();
+ if(!p)return text;
+ return text.replace(/(\d+)(?=\s*(gentagelser|pr\. side|pr\. arm|rolige)?)/i,(m,n)=>String(parseInt(n)+Math.min(p*2,6)));
+}
+function questSummary(q){
+ return q.sets[state.energy].map(([a,b])=>`${a}: ${adjusted(b)}`).join(" · ");
+}
+function boardKey(type,id){return `${type}:${id}`}
+function isSelected(type,id){return state.board.includes(boardKey(type,id))}
+function toggleBoard(type,id){
+ const key=boardKey(type,id);
+ if(state.board.includes(key)){
+   state.board=state.board.filter(x=>x!==key);
+ } else {
+   state.board.push(key);
+   const dayKey=todayKey()+"|"+key;
+   if(!state.weekSelectedDays[dayKey]){
+     state.weekSelected[key]=(state.weekSelected[key]||0)+1;
+     state.weekSelectedDays[dayKey]=true;
+   }
+ }
+ save(); update();
+}
+function renderBoard(){
+ const root=document.getElementById("board");
+ if(!state.board.length){
+  root.innerHTML=`<div class="board-empty">✨ Dit board er tomt endnu.<br><span class="small">Vælg quests nedenfor. De dukker op her på dit board.</span></div>`;
+  return;
+ }
+ root.innerHTML="";
+ const list=document.createElement("div"); list.className="board-list";
+ state.board.forEach(key=>{
+  const [type,id]=key.split(":");
+  if(type==="training"){
+   const q=baseQuests[id]; if(!q)return;
+   const done=!!state.doneToday.items[id];
+   const item=document.createElement("div"); item.className="board-item"+(done?" done":"");
+   item.innerHTML=`<div class="board-head">
+      <div><div class="board-title">${q.icon} ${q.title}</div><div class="small">${questSummary(q)}</div></div>
+      <span class="small">${done?"✓ Klaret":`+${q.xp} XP`}</span>
+    </div>
+    <div class="board-actions">
+      <button class="mini-btn start">${done?"Se quest":"Åbn quest"}</button>
+      <button class="board-done-btn ${done?"done":""} finish" ${done?"disabled":""}>${done?"✓ Gennemført":"Gennemført ✓"}</button>
+      <button class="mini-btn light remove">Fjern</button>
+    </div>`;
+   item.querySelector(".start").onclick=()=>openQuest(id);
+   const finish=item.querySelector(".finish"); if(finish && !done) finish.onclick=()=>completeTraining(id);
+   item.querySelector(".remove").onclick=()=>toggleBoard("training",id);
+   list.appendChild(item);
+  }else if(type==="life"){
+   const q=lifeQuests.find(x=>x.id===id); if(!q)return;
+   const count=state.week[id]||0, done=count>=q.target;
+   const item=document.createElement("div"); item.className="board-item"+(done?" done":"");
+   item.innerHTML=`<div class="board-head">
+      <div><div class="board-title">${q.icon} ${q.title}</div><div class="small">${q.text}</div></div>
+      <span class="small">${done?"✓ Ugens mål klaret":`+${q.xp} XP`}</span>
+    </div>
+    <span class="life-meta">${q.target>1?`${count}/${q.target} denne uge`:done?"Klaret denne uge":"Ikke klaret endnu"}</span>
+    <div class="board-actions">
+      <button class="board-done-btn ${done?"done":""} complete-life" ${done?"disabled":""}>${done?"✓ Gennemført":"Gennemført ✓"}</button>
+      <button class="mini-btn light remove">Fjern</button>
+    </div>`;
+   const complete=item.querySelector(".complete-life");
+   if(!done) complete.onclick=()=>completeLife(q);
+   item.querySelector(".remove").onclick=()=>toggleBoard("life",id);
+   list.appendChild(item);
+  }
+ });
+ root.appendChild(list);
+}
+function renderLibraries(){
+ const training=document.getElementById("trainingLibrary");
+ const life=document.getElementById("lifeLibrary");
+ training.innerHTML="";
+ life.innerHTML="";
+
+ Object.entries(baseQuests).forEach(([id,q])=>{
+   const selected=isSelected("training",id);
+   const done=!!state.doneToday.items[id];
+   const b=document.createElement("button");
+   b.type="button";
+   b.className="pick-card"+(selected?" selected":"")+(done?" done":"");
+   b.setAttribute("aria-pressed", selected ? "true" : "false");
+   b.innerHTML=`
+     <span class="pick-box">${selected?"✓":""}</span>
+     <span class="pick-main">
+       <span class="pick-title">${q.icon} ${q.title}</span>
+       <span class="pick-preview">${questSummary(q)}</span>
+       <span class="pick-action">${done?"✓ Gennemført i dag":selected?"✓ På boardet":"Tryk for at vælge"}</span>
+     </span>`;
+   b.addEventListener("click",()=>toggleBoard("training",id));
+   training.appendChild(b);
+ });
+
+ lifeQuests.forEach(q=>{
+   const count=state.week[q.id]||0;
+   const done=count>=q.target;
+   const selected=isSelected("life",q.id);
+   const b=document.createElement("button");
+   b.type="button";
+   b.className="pick-card life"+(selected?" selected":"")+(done?" done":"");
+   b.setAttribute("aria-pressed", selected ? "true" : "false");
+   b.innerHTML=`
+     <span class="pick-box">${selected?"✓":""}</span>
+     <span class="pick-main">
+       <span class="pick-title">${q.icon} ${q.title}</span>
+       <span class="pick-preview">${q.text}</span>
+       <span class="pick-action">${done?"✓ Ugens mål klaret":selected?"✓ På boardet":"Tryk for at vælge"}</span>
+     </span>`;
+   if(!done) b.addEventListener("click",()=>toggleBoard("life",q.id));
+   else b.disabled=true;
+   life.appendChild(b);
+ });
+}
+function renderWeeklyVisual(){
+ const root=document.getElementById("weeklyVisual");
+ const hint=document.getElementById("weeklyHint");
+ const items=[];
+ Object.entries(baseQuests).forEach(([id,q])=>{
+   items.push({key:boardKey("training",id),label:`${q.icon} ${q.title}`,count:state.weekSelected[boardKey("training",id)]||0});
+ });
+ lifeQuests.forEach(q=>{
+   items.push({key:boardKey("life",q.id),label:`${q.icon} ${q.title}`,count:state.weekSelected[boardKey("life",q.id)]||0});
+ });
+ const max=Math.max(1,...items.map(x=>x.count));
+ root.innerHTML=items.map(x=>{
+   const pct=Math.round((x.count/max)*100);
+   return `<div class="weekly-row ${x.count===0?"weekly-zero":""}">
+     <div class="weekly-label">${x.label}</div>
+     <div class="weekly-track"><div class="weekly-fill" style="width:${pct}%"></div></div>
+     <div class="weekly-count">${x.count}×</div>
+   </div>`;
+ }).join("");
+ const never=items.filter(x=>x.count===0);
+ if(never.length){
+   const suggestions=never.slice(0,2).map(x=>x.label).join(" eller ");
+   hint.textContent=`Ikke valgt endnu i denne uge: ${suggestions}. Måske en af dem næste gang?`;
+ } else {
+   hint.textContent="Du har prøvet alle typer quests i denne uge ✨";
+ }
+}
+
+function renderLevels(){
+ document.getElementById("levelsRow").innerHTML=levels.map(l=>`<div class="level ${currentLevel().name===l.name?"active":""}">${l.icon}<br>${l.name}<br><span class="small">${l.xp} XP</span></div>`).join("")
+}
+function renderBadges(){
+ const badgeDefs=[
+  ["first","🌟 Første quest"],["strength","💪 Strength Star"],["jump","🪢 Jump Hero"],
+  ["core","🔥 Core Star"],["five","✨ 5 quests"],["tidy","🧹 Room Reset"],
+  ["creative","🎨 Creative Mind"],["clothes","🧺 Clothes Win"]
+ ];
+ document.getElementById("badgesGrid").innerHTML=badgeDefs.map(([id,t])=>`<div class="badge ${state.badges[id]?"unlocked":""}">${t}</div>`).join("")
+}
+function update(){
+ normalize(); save();
+ const cur=currentLevel(), next=nextLevel();
+ document.getElementById("levelPill").textContent=cur.name+" "+cur.icon;
+ document.getElementById("xpText").textContent=state.xp+" XP";
+ const min=cur.xp,max=next.xp,pct=max===min?100:Math.max(0,Math.min(100,(state.xp-min)/(max-min)*100));
+ document.getElementById("xpFill").style.width=pct+"%";
+ document.getElementById("rewardTitle").textContent=cur.name==="Legend"?"Legend unlocked!":next.name;
+ document.getElementById("rewardIcon").textContent=cur.name==="Legend"?"💎":"🔒";
+ document.getElementById("rewardText").textContent=cur.name==="Legend"?"Du har nået toppen – fortsæt kun fordi det føles godt.":`${Math.max(0,next.xp-state.xp)} XP tilbage`;
+ document.querySelectorAll(".energy").forEach(b=>b.classList.toggle("active",b.dataset.energy===state.energy));
+ const hints={low:"",mid:"God = lidt mere, men stadig overskueligt.",high:"Ekstra = kun når du har lyst til lidt mere."};
+ document.getElementById("energyHint").textContent=hints[state.energy];
+ const lines=["Mini hepper. Vælg det der passer i dag.","Kort tæller også.","Du behøver ikke gøre det perfekt.","Rolig dag? Easy Quest er stadig en rigtig quest.","Små skridt bygger styrke."];
+ document.getElementById("miniMessage").textContent=lines[state.xp%lines.length];
+ renderBoard();renderWeeklyVisual();renderLibraries();renderLevels();renderBadges()
+}
+document.querySelectorAll(".energy").forEach(b=>b.onclick=()=>{state.energy=b.dataset.energy;save();update()});
+
+let activeQuest=null, timerHandle=null, remaining=0;
+function openQuest(id){
+ activeQuest=id; const q=baseQuests[id];
+ document.getElementById("modalTitle").textContent=q.icon+" "+q.title;
+ document.getElementById("modalIntro").textContent=state.energy==="low"?"Let version – kort og overkommelig. Det tæller fuldt ud.":state.energy==="high"?"Ekstra version – kun hvis du har lyst og energi.":"God version – kort og overskuelig.";
+ document.getElementById("exerciseList").innerHTML=q.sets[state.energy].map(([a,b])=>`<div class="exercise"><strong>${a}</strong><span>${adjusted(b)}</span></div>`).join("");
+ document.getElementById("completeBtn").onclick=()=>completeTraining(id);
+ document.getElementById("timer").textContent="00:00"; document.getElementById("modal").classList.add("show")
+}
+function closeModal(){clearInterval(timerHandle);document.getElementById("modal").classList.remove("show")}
+function startTimer(sec){
+ clearInterval(timerHandle);remaining=sec;paintTimer();
+ timerHandle=setInterval(()=>{remaining--;paintTimer();if(remaining<=0){clearInterval(timerHandle);pop()}},1000)
+}
+function paintTimer(){document.getElementById("timer").textContent=`${String(Math.floor(remaining/60)).padStart(2,"0")}:${String(remaining%60).padStart(2,"0")}`}
+function completeTraining(id){
+ const q=baseQuests[id];
+ if(!state.doneToday.items[id]){
+  state.xp+=q.xp;state.trainingCount=(state.trainingCount||0)+1;state.doneToday.items[id]=true;
+  state.badges.first=true;state.badges[id]=true;if(state.trainingCount>=5)state.badges.five=true;
+  document.getElementById("message").textContent=`${q.title} klaret! +${q.xp} XP ⭐`;pop()
+ }else document.getElementById("message").textContent="Den quest er allerede klaret i dag ⭐";
+ save();closeModal();update()
+}
+function completeLife(q){
+ const count=state.week[q.id]||0;
+ if(count>=q.target){document.getElementById("message").textContent="Den er allerede klaret for denne uge ⭐";return}
+ state.week[q.id]=count+1;state.xp+=q.xp;state.badges[q.id]=true;state.badges.first=true;save();pop();update();
+ document.getElementById("message").textContent=`${q.title} klaret! +${q.xp} XP ⭐`
+}
+function show(id){document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");update()}
+function pop(){const c=document.getElementById("confetti");c.style.display="flex";setTimeout(()=>c.style.display="none",850)}
+function resetAll(){if(confirm("Vil du nulstille XP og alle fremskridt?")){localStorage.removeItem("aijasQuest26");localStorage.removeItem("aijasQuest25");localStorage.removeItem("aijasQuest24");localStorage.removeItem("aijasQuest22");localStorage.removeItem("aijasQuest2");location.reload()}}
+normalize();update();
+</script>
+</body>
+</html>
